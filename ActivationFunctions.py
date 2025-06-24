@@ -32,12 +32,16 @@ both foward and backward passes of its own
 
 from BaseLayer import LayerStructure
 
+#stable softmax
 class Softmax(LayerStructure):
     def forward_pass(self, input):
-        temp = np.exp(input)
-        self.output = temp / np.sum(temp)
+        stable_input = input - np.max(input)
+        exponent = np.exp(stable_input)
+        self.output = exponent / np.sum(exponent)
         return self.output
 
     def backward_pass(self, output_gradient, learning_rate):
-        output_size = np.size(self.output)
-        return np.dot((np.identity(output_size) - self.output.T) * self.output, output_gradient)
+        s = self.output.reshape(-1, 1)
+        jacobian = np.diagflat(s) - np.dot(s, s.T)
+
+        return np.dot(jacobian, output_gradient)
