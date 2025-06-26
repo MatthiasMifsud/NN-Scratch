@@ -34,6 +34,6 @@ neural_network = [
 ]
 
 train(x_train=X_train, y_train=Y_train, network=neural_network,
-      cost=mse, cost_deriv=mse_derivative, learning_rate=0.1, epochs=100)
+      cost=mse, cost_deriv=mse_derivative, learning_rate=0.1, epochs=10)
 
 test(x_test=X_test, y_test=Y_test, network=neural_network)

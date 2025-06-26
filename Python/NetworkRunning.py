@@ -11,6 +11,8 @@ def predict(input, network):
 
 def train(x_train, y_train, network, cost, cost_deriv, 
           epochs = 100, learning_rate = 0.01, verbose = True):
+    
+    error_history = []
 
     for times in range(epochs):
         error = 0
@@ -20,6 +22,7 @@ def train(x_train, y_train, network, cost, cost_deriv,
             output = predict(x, network)
 
             # Cumalative error for current run
+
             error += cost(y, output)
 
             #Compuying cost w.r.t the output (Ready for back propogation)
@@ -52,3 +55,17 @@ def test(x_test, y_test, network, verbose=True):
     
     accuracy = 100 * correct_pred_count / len(y_test)
     print(f"Accuracy: {accuracy}%")
+
+
+'''
+        if len(error_history) <= 4:
+                error_history.append(error)
+
+        elif len(error_history) == 5:
+            prev_history_mean = np.mean(error_history)
+            
+            if error >= prev_history_mean:
+                learning_rate *= 8
+                error_history.clear()
+                print(f"learning rate changed to {learning_rate}")
+'''
