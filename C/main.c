@@ -3,7 +3,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #define INPUT_SIZE 28*28
 #define OUTPUT_SIZE 10
 #define HIDDEN_LAYER_SIZE 16
@@ -19,11 +18,37 @@ struct Parameters{
     double *B_2;
 } param;
 
+struct Data{
+    double *X_train;
+    double *X_test;
+    int *y_train;
+    int *y_test;
+} data;
+
+struct Forward{
+    double *A1;
+    double *Z1;
+    double *A2;
+    double *Z2;
+} forward;
+
 double randn(){
     double u1 = (rand() + 1.0) / (RAND_MAX + 2.0);
     double u2 = (rand() + 1.0) / (RAND_MAX + 2.0);
 
     return sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+}
+
+// function to find maximum of an array
+double maximum(double *array, const int size){
+    double max = array[0];
+
+    for (int i = 1; i < size; i++)
+    {
+        if (array[i] > max)
+            max = array[i];
+    }
+    return max;
 }
 
 void init_param(){
@@ -50,21 +75,12 @@ void init_param(){
 }
 
 // activation functions 
-
 double ReLU(double x){
     return (x > 0.0) ? x : 0.0;
 }
 
-// function to find maximum of an array
-double maximum(double *array, const int size){
-    double max = array[0];
-
-    for (int i = 1; i < size; i++)
-    {
-        if (array[i] > max)
-            max = array[i];
-    }
-    return max;
+double ReLU_deriv(double x){
+    return (x > 0) ? 1.0 : 0.0;
 }
 
 double *Softmax(double *input, const int size){
@@ -86,52 +102,43 @@ double *Softmax(double *input, const int size){
     return input;
 }
 
-double ReLU_deriv(double x){
-
-}
-
-double Softmax_deriv(double x){
-
-}
 
 // aim is to get the output Y from an input X
-double *forward_prop(double X[INPUT_SIZE]){
+void forward_prop(double X[INPUT_SIZE]){
     double weighted_sum = 0.0;
     
     // first part
-    double *activation_1 = malloc(HIDDEN_LAYER_SIZE * sizeof(double));
-    double *activation_2 = malloc(OUTPUT_SIZE * sizeof(double));
+    forward.Z1 = malloc(HIDDEN_LAYER_SIZE * sizeof(double));
+    forward.A1 = malloc(HIDDEN_LAYER_SIZE * sizeof(double));
+    forward.Z2 = malloc(OUTPUT_SIZE * sizeof(double));
+    forward.A2 = malloc(OUTPUT_SIZE * sizeof(double));
 
     for (int i = 0; i < HIDDEN_LAYER_SIZE; i++)
     {
-        double sum = param.B_1[i];
+        forward.Z1[i] = param.B_1[i];
         for (int j = 0; j < INPUT_SIZE; j++)
         {
-            sum += X[j] * param.W_1[i * INPUT_SIZE + j];
+            forward.Z1[i] += X[j] * param.W_1[i * INPUT_SIZE + j];
 
         }
-        activation_1[i] = ReLU(sum);
+        forward.A1[i] = ReLU(forward.Z1[i]);
     }
 
 
     for (int i = 0; i < OUTPUT_SIZE; i++)
     {
-        double sum = param.B_2[i];
+        forward.Z2[i] = param.B_2[i];
         for (int j = 0; j < HIDDEN_LAYER_SIZE; j++)
         {
-            sum += X[j] * param.W_2[i * HIDDEN_LAYER_SIZE + j];
+            forward.Z2[i] += X[j] * param.W_2[i * HIDDEN_LAYER_SIZE + j];
         }
-        activation_2[i] = sum;
+        forward.A2[i] = forward.Z2[i];
     }
 
-    Softmax(activation_2, OUTPUT_SIZE);
-
-    free(activation_1);
-
-    return activation_2;
+    Softmax(forward.A2, OUTPUT_SIZE);
 }
 
-double *backward_prop(double Y[OUTPUT_SIZE]){
+void backward_prop(double Y[OUTPUT_SIZE]){
     
 }
 
@@ -191,25 +198,25 @@ void read_data(){
     const int test_size = file_size(test_data);
     rewind(test_data);
 
-    int *y_train = malloc(train_size * sizeof(int));
-    int *y_test = malloc(test_size * sizeof(int));
-    double *X_train = malloc(INPUT_SIZE * train_size * sizeof(double));
-    double *X_test = malloc(INPUT_SIZE * test_size * sizeof(double));
+    data.y_train = malloc(train_size * sizeof(int));
+    data.y_test = malloc(test_size * sizeof(int));
+    data.X_train = malloc(INPUT_SIZE * train_size * sizeof(double));
+    data.X_test = malloc(INPUT_SIZE * test_size * sizeof(double));
 
-    fill_data(test_data, y_test, X_test);
-    fill_data(train_data, y_train, X_train);
+    fill_data(test_data, data.y_test, data.X_test);
+    fill_data(train_data, data.y_train, data.X_train);
 
     fclose(test_data);
     fclose(train_data);
-
-    free(y_train);
-    free(y_test);
-    free(X_train);
-    free(X_test);
 }
 
-
 int main(void){
+    double Y[OUTPUT_SIZE];
     read_data();
+
+    free(data.y_train);
+    free(data.y_test);
+    free(data.X_train);
+    free(data.X_test);
     return 0;
 }
