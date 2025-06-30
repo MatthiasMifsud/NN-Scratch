@@ -10,7 +10,7 @@
 
 #define TEST_PATH "./data/mnist_test.csv"
 #define TRAIN_PATH "./data/mnist_train.csv"
-#define MAX_LINE_LENGTH 2000
+#define MAX_LINE_LENGTH 10000
 
 struct Parameters{
     double *W_1;
@@ -134,21 +134,47 @@ double *forward_prop(double X[INPUT_SIZE]){
 double *backward_prop(double Y[OUTPUT_SIZE]){
     
 }
-int file_size(FILE* file, char *line){
+
+int file_size(FILE* file){
     int count = 0;
     char c;
-
-    //skipping the first line (header)
-    fgets(line, sizeof(line), file);
 
     //reading one line at a time
     while ((c = fgetc(file)) != EOF){
         if (c == '\n') count++;
     }
 
-    return count-1; //decrementing count by 1 to skip header
+    return (count > 0) ? count - 1 : 0; //decrementing count by 1 to skip header
 }
 
+void fill_data(FILE* file, int *y, double *X){
+    char line[MAX_LINE_LENGTH];
+    int pos = 0;
+    //reading the test data
+    //skipping the first line (header)
+    fgets(line, sizeof(line), file);
+
+    //reading one line at a time
+    while (fgets(line, sizeof(line), file)){
+
+        line[strcspn(line, "\r\n")] = '\0';
+
+        //tokenising each character in the line and separating labels and pixels
+        char *token = strtok(line, ",");
+        y[pos] = atoi(token); //pointer to the first token is the label
+
+        for (int i = 0; i < INPUT_SIZE; i++)
+        {
+            token = strtok(NULL, ",");
+
+            if (token != NULL)
+                X[pos * INPUT_SIZE + i] = atof(token);
+            else
+                perror("ERROR: Incomplete pixel data");
+        }
+        pos++;
+    }
+}
 
 void read_data(){
     FILE* test_data = fopen(TEST_PATH, "r");
@@ -159,36 +185,27 @@ void read_data(){
         exit(1);
     }
 
-    char line[MAX_LINE_LENGTH];
-    const int train_size = file_size(train_data, line);
-    const int test_size = file_size(test_data, line);
-    int y_train[train_size];
-    int y_test[test_size];
-    double pixels[INPUT_SIZE];
     int pos = 0;
+    const int train_size = file_size(train_data);
+    rewind(train_data);
+    const int test_size = file_size(test_data);
+    rewind(test_data);
 
+    int *y_train = malloc(train_size * sizeof(int));
+    int *y_test = malloc(test_size * sizeof(int));
+    double *X_train = malloc(INPUT_SIZE * train_size * sizeof(double));
+    double *X_test = malloc(INPUT_SIZE * test_size * sizeof(double));
 
-    //reading the test data
-    //skipping the first line (header)
-    fgets(line, sizeof(line), test_data);
+    fill_data(test_data, y_test, X_test);
+    fill_data(train_data, y_train, X_train);
 
-    //reading one line at a time
-    while (fgets(line, sizeof(line), test_data)){
-        //tokenising each character in the line and separating labels and pixels
-        char *token = strtok(line, ",");
-        y_test[pos] = atoi(token); //pointer to the first token is the label
-        pos++;
+    fclose(test_data);
+    fclose(train_data);
 
-        for (int i = 0; i < INPUT_SIZE; i++)
-        {
-            token = strtok(NULL, ",");
-
-            if (token != NULL)
-                pixels[i] = atof(token);
-            else
-                perror("ERROR: Incomplete pixel data");
-        }
-    }
+    free(y_train);
+    free(y_test);
+    free(X_train);
+    free(X_test);
 }
 
 
