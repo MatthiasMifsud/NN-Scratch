@@ -32,6 +32,16 @@ struct Forward{
     double *Z2;
 } forward;
 
+struct Backward{
+    double *dZ1;
+    double *dZ2;
+    double *dW1;
+    double *dW2;
+    double *dB1;
+    double *dB2;
+} backward;
+
+// random fucntion for random weights and biases
 double randn(){
     double u1 = (rand() + 1.0) / (RAND_MAX + 2.0);
     double u2 = (rand() + 1.0) / (RAND_MAX + 2.0);
@@ -60,17 +70,21 @@ void init_param(){
     for (int i = 0; i < HIDDEN_LAYER_SIZE * INPUT_SIZE; i++)
     {
         param.W_1[i] = randn();
-
-        if (i <= HIDDEN_LAYER_SIZE) 
-            param.B_1[i] = randn();
+    }
+    
+    for (int i = 0; i < HIDDEN_LAYER_SIZE; i++)
+    {
+        param.B_1[i] = randn();
     }
 
     for (int i = 0; i < OUTPUT_SIZE * HIDDEN_LAYER_SIZE; i++)
     {
         param.W_2[i] = randn();
+    }
 
-        if (i <= OUTPUT_SIZE)
-            param.B_2[i] = randn();
+    for (int i = 0; i < OUTPUT_SIZE; i++)
+    {
+        param.B_2[i] = randn();
     }
 }
 
@@ -83,27 +97,13 @@ double ReLU_deriv(double x){
     return (x > 0) ? 1.0 : 0.0;
 }
 
-double *Softmax(double *input, const int size){
-    double max_input = maximum(input, size);
-    double exponent[size];
-    double exponent_sum = 0.0;
+// loss function 
 
-    for (int i = 0; i < size; i++)
-    {
-        exponent[i] = exp(input[i] - max_input);
-        exponent_sum += exponent[i];
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        input[i] = exponent[i] / exponent_sum;
-    }
-
-    return input;
+double mse(){
+    
 }
 
-
-// aim is to get the output Y from an input X
+// goal is to get the output
 void forward_prop(double X[INPUT_SIZE]){
     double weighted_sum = 0.0;
     
@@ -113,6 +113,7 @@ void forward_prop(double X[INPUT_SIZE]){
     forward.Z2 = malloc(OUTPUT_SIZE * sizeof(double));
     forward.A2 = malloc(OUTPUT_SIZE * sizeof(double));
 
+    //hidden layer
     for (int i = 0; i < HIDDEN_LAYER_SIZE; i++)
     {
         forward.Z1[i] = param.B_1[i];
@@ -124,13 +125,13 @@ void forward_prop(double X[INPUT_SIZE]){
         forward.A1[i] = ReLU(forward.Z1[i]);
     }
 
-
+    //output layer
     for (int i = 0; i < OUTPUT_SIZE; i++)
     {
         forward.Z2[i] = param.B_2[i];
         for (int j = 0; j < HIDDEN_LAYER_SIZE; j++)
         {
-            forward.Z2[i] += X[j] * param.W_2[i * HIDDEN_LAYER_SIZE + j];
+            forward.Z2[i] += forward.A1[j] * param.W_2[i * HIDDEN_LAYER_SIZE + j];
         }
         forward.A2[i] = forward.Z2[i];
     }
@@ -138,10 +139,38 @@ void forward_prop(double X[INPUT_SIZE]){
     Softmax(forward.A2, OUTPUT_SIZE);
 }
 
-void backward_prop(double Y[OUTPUT_SIZE]){
+void backward_prop(double Y[OUTPUT_SIZE], double learning_rate){
+
+    //output layer
+
+    backward.dZ2 = malloc(OUTPUT_SIZE * sizeof(double));
+    for (int i = 0; i < OUTPUT_SIZE; i++)
+    {
+        backward.dZ2[i] = forward.A2[i] - Y[i];
+    }
     
+    for (int i = 0; i < OUTPUT_SIZE; i++)
+    {
+        for (int j = 0; j < HIDDEN_LAYER_SIZE; j++)
+        {
+            param.W_2[i * HIDDEN_LAYER_SIZE + j] -= learning_rate * backward.dZ2[i] * forward.A1[j];
+        }   
+        param.B_2[i] -= learning_rate * backward.dZ2[i];
+    }
+
+    //hidden layer
+    backward.dZ1 = malloc(HIDDEN_LAYER_SIZE * sizeof(double));
+
+    }
+    
+
+
+
+
+  
 }
 
+//handeling the MNIST data 
 int file_size(FILE* file){
     int count = 0;
     char c;
@@ -150,7 +179,6 @@ int file_size(FILE* file){
     while ((c = fgetc(file)) != EOF){
         if (c == '\n') count++;
     }
-
     return (count > 0) ? count - 1 : 0; //decrementing count by 1 to skip header
 }
 
@@ -175,7 +203,7 @@ void fill_data(FILE* file, int *y, double *X){
             token = strtok(NULL, ",");
 
             if (token != NULL)
-                X[pos * INPUT_SIZE + i] = atof(token);
+                X[pos * INPUT_SIZE + i] = atof(token) / 255.0;
             else
                 perror("ERROR: Incomplete pixel data");
         }
@@ -211,8 +239,7 @@ void read_data(){
 }
 
 int main(void){
-    double Y[OUTPUT_SIZE];
-    read_data();
+    init_param();
 
     free(data.y_train);
     free(data.y_test);
