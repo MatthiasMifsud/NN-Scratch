@@ -3,11 +3,6 @@
 #include <stdlib.h>
 #include "data.h"
 
-#define TEST_PATH "./data/mnist_test.csv"
-#define TRAIN_PATH "./data/mnist_train.csv"
-#define MAX_LINE_LENGTH 10000
-
-
 //handeling the MNIST data 
 int file_size(FILE* file){
     int count = 0;
@@ -23,6 +18,7 @@ int file_size(FILE* file){
 void fill_data(FILE* file, double *y, double *X, const int input_size){
     char line[MAX_LINE_LENGTH];
     int pos = 0;
+
     //reading the test data
     //skipping the first line (header)
     fgets(line, sizeof(line), file);

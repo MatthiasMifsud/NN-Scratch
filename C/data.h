@@ -1,6 +1,10 @@
 #ifndef DATA_H
 #define DATA_H
 
+#define TEST_PATH "./data/mnist_test.csv"
+#define TRAIN_PATH "./data/mnist_train.csv"
+#define MAX_LINE_LENGTH 10000
+
 int file_size(FILE* file);
 void fill_data(FILE* file, double *y, double *X, const int input_size);
 void read_mnist(const char *train_path, const char *test_path,
