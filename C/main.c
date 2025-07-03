@@ -21,8 +21,8 @@ struct Parameters{
 struct Data{
     double *X_train;
     double *X_test;
-    int *y_train;
-    int *y_test;
+    double *y_train;
+    double *y_test;
 } data;
 
 struct Forward{
@@ -31,15 +31,6 @@ struct Forward{
     double *A2;
     double *Z2;
 } forward;
-
-struct Backward{
-    double *dZ1;
-    double *dZ2;
-    double *dW1;
-    double *dW2;
-    double *dB1;
-    double *dB2;
-} backward;
 
 // random fucntion for random weights and biases
 double randn(){
@@ -98,10 +89,27 @@ double ReLU_deriv(double x){
 }
 
 // loss function 
+double mse(float *y_true, float *y_pred, int size){
+    double mse = 0.0;
+    for (int i = 0; i < size; i++)
+    {
+        double mse_diff = y_pred[i] - y_true[i];
+        mse += mse_diff * mse_diff;
+    }
 
-double mse(){
-    
+    return mse / (double)size;
 }
+
+double *mse_deriv(float *y_true, float *y_pred, int size){
+    double mse_deriv[size];
+    for (int i = 0; i < size; i++)
+    {
+        mse_deriv[i] = 2.0 * (y_pred[i] - y_true[i]) / (double)size;
+    }
+    
+    return mse_deriv;
+}
+
 
 // goal is to get the output
 void forward_prop(double X[INPUT_SIZE]){
@@ -135,40 +143,27 @@ void forward_prop(double X[INPUT_SIZE]){
         }
         forward.A2[i] = forward.Z2[i];
     }
-
-    Softmax(forward.A2, OUTPUT_SIZE);
 }
 
-void backward_prop(double Y[OUTPUT_SIZE], double learning_rate){
 
-    //output layer
-
-    backward.dZ2 = malloc(OUTPUT_SIZE * sizeof(double));
-    for (int i = 0; i < OUTPUT_SIZE; i++)
-    {
-        backward.dZ2[i] = forward.A2[i] - Y[i];
-    }
+void backward_prop(double dCdY[OUTPUT_SIZE], double input[HIDDEN_LAYER_SIZE], double learning_rate){
     
+    //output layer backprop
     for (int i = 0; i < OUTPUT_SIZE; i++)
     {
         for (int j = 0; j < HIDDEN_LAYER_SIZE; j++)
         {
-            param.W_2[i * HIDDEN_LAYER_SIZE + j] -= learning_rate * backward.dZ2[i] * forward.A1[j];
-        }   
-        param.B_2[i] -= learning_rate * backward.dZ2[i];
+            double dCdW2 = dCdY[i] * input[j];
+            param.W_2[i * HIDDEN_LAYER_SIZE + j] -= dCdW2 * learning_rate;
+        }
     }
 
-    //hidden layer
-    backward.dZ1 = malloc(HIDDEN_LAYER_SIZE * sizeof(double));
-
+    for (int i = 0; i < OUTPUT_SIZE; i++)
+    {
+        param.B_2[i] -= dCdY[i] * learning_rate;   
     }
-    
-
-
-
-
-  
 }
+
 
 //handeling the MNIST data 
 int file_size(FILE* file){
@@ -182,7 +177,7 @@ int file_size(FILE* file){
     return (count > 0) ? count - 1 : 0; //decrementing count by 1 to skip header
 }
 
-void fill_data(FILE* file, int *y, double *X){
+void fill_data(FILE* file, double *y, double *X){
     char line[MAX_LINE_LENGTH];
     int pos = 0;
     //reading the test data
@@ -211,6 +206,18 @@ void fill_data(FILE* file, int *y, double *X){
     }
 }
 
+double *one_hot(double *y, const int size){
+    double *one_hot_y = malloc(size * OUTPUT_SIZE * sizeof(double));
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < OUTPUT_SIZE; j++)
+        {
+            one_hot_y[i * OUTPUT_SIZE + j] = (y[i] == j) ? 1.0 : 0.0;
+        }   
+    }
+    return one_hot_y;
+}
+
 void read_data(){
     FILE* test_data = fopen(TEST_PATH, "r");
     FILE* train_data = fopen(TRAIN_PATH, "r");
@@ -234,11 +241,13 @@ void read_data(){
     fill_data(test_data, data.y_test, data.X_test);
     fill_data(train_data, data.y_train, data.X_train);
 
+
     fclose(test_data);
     fclose(train_data);
 }
 
 int main(void){
+    read_data();
     init_param();
 
     free(data.y_train);
