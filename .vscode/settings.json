@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "string.h": "c",
-        "fullyconnected.h": "c"
+        "fullyconnected.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c"
     }
 }
