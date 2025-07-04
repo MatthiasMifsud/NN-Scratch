@@ -10,6 +10,14 @@ double randn(){
     return sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
 }
 
+void create_randn_matrix(double *matrix, const int size){
+    malloc(size * sizeof(double));
+    for (int i = 0; i < size; i++)
+    {
+        matrix[i] = randn();
+    }
+}
+
 // goal is to get the output
 void dense_forward(const double *X, const double *W, const double *B,
                     double *Z, const int input_size, const int out_size){

@@ -1,7 +1,7 @@
 #ifndef FULLYCONNECTED_H
 #define FULLYCONNECTED_H
 
-double randn();
+void create_randn_matrix(double *matrix, const int size);
 
 void dense_forward(const double *X, const double *W, const double *B,
                     double *Z, const int input_size, const int out_size);

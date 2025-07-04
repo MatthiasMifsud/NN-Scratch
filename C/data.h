@@ -5,6 +5,15 @@
 #define TRAIN_PATH "./data/mnist_train.csv"
 #define MAX_LINE_LENGTH 10000
 
+struct Data{
+    double *X_train;
+    double *X_test;
+    double *y_train;
+    double *y_test;
+    double *y_train_one_hot;
+    double *y_test_one_hot;
+}data;
+
 int file_size(FILE* file);
 void fill_data(FILE* file, double *y, double *X, const int input_size);
 void read_mnist(const char *train_path, const char *test_path,
