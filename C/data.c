@@ -22,8 +22,7 @@ void free_data(){
     free(data.y_train_one_hot);
 }
 
-void one_hot(double *y, double *y_one_hot, 
-                const int size, const int output_size){
+void one_hot(double *y, double *y_one_hot, const int size, const int output_size){
     for (int i = 0; i < size; i++)
     {
         for (int j = 0; j < output_size; j++)
@@ -41,10 +40,11 @@ int file_size(FILE* file){
     while ((c = fgetc(file)) != EOF){
         if (c == '\n') count++;
     }
+    rewind(file);
     return (count > 0) ? count - 1 : 0; //decrementing count by 1 to skip header
 }
 
-void fill_data(FILE* file, double *y, double *X, const int input_size){
+void read_data(FILE* file, double *y, double *X, const int input_size){
     char line[MAX_LINE_LENGTH];
     int pos = 0;
 
@@ -74,7 +74,7 @@ void fill_data(FILE* file, double *y, double *X, const int input_size){
     }
 }
 
-void read_data(const int input_size, const int output_size){
+void load_data(const int input_size, const int output_size){
     FILE* test_data = fopen(TEST_PATH, "r");
     FILE* train_data = fopen(TRAIN_PATH, "r");
 
@@ -84,15 +84,14 @@ void read_data(const int input_size, const int output_size){
     }
 
     int pos = 0;
+
     const int train_size = file_size(train_data);
-    rewind(train_data);
     const int test_size = file_size(test_data);
-    rewind(test_data);
 
     init_data(train_size, test_size, input_size, output_size);
 
-    fill_data(test_data, data.y_test, data.X_test, input_size);
-    fill_data(train_data, data.y_train, data.X_train, input_size);
+    read_data(test_data, data.y_test, data.X_test, input_size);
+    read_data(train_data, data.y_train, data.X_train, input_size);
     one_hot(data.y_test, data.y_test_one_hot, test_size, output_size);
     one_hot(data.y_train, data.y_train_one_hot, train_size, output_size);
 
@@ -102,5 +101,3 @@ void read_data(const int input_size, const int output_size){
     fclose(test_data);
     fclose(train_data);
 }
-
-

@@ -11,7 +11,7 @@ double randn(){
 }
 
 void create_randn_matrix(double *matrix, const int size){
-    malloc(size * sizeof(double));
+    matrix = malloc(size * sizeof(double));
     for (int i = 0; i < size; i++)
     {
         matrix[i] = randn();

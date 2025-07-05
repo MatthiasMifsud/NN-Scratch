@@ -5,6 +5,7 @@
         "stdlib.h": "c",
         "stdio.h": "c",
         "math.h": "c",
-        "activation.h": "c"
+        "activation.h": "c",
+        "data.h": "c"
     }
 }

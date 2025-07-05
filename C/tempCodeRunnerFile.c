@@ -1,0 +1,1 @@
+gcc -o nn-scratch main.c data.c model.c 
