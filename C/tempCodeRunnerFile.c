@@ -1,1 +1,1 @@
-gcc -o nn-scratch main.c data.c model.c 
+gcc -o nn main.c data.c model.c activation.c fullyconnected.c loss.c 

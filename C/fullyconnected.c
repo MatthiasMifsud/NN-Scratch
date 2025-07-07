@@ -11,7 +11,6 @@ double randn(){
 }
 
 void create_randn_matrix(double *matrix, const int size){
-    matrix = malloc(size * sizeof(double));
     for (int i = 0; i < size; i++)
     {
         matrix[i] = randn();
@@ -35,9 +34,16 @@ void dense_forward(const double *X, const double *W, const double *B,
 // goal is to compute the deriv of the cost w.r.t to the input 
 // and computing gradient descent
 void dense_backward(double *dCdY, double *dCdX, double *input, 
-                    double *W, double *B, const int out_size, 
-                    const int input_size, double learning_rate){
-    
+                    double *W, double *B, const int input_size, 
+                    const int out_size, double learning_rate){
+
+
+    for (int i = 0; i < input_size; i++) {
+        dCdX[i] = 0.0;
+        for (int j = 0; j < out_size; j++) {
+            dCdX[i] += dCdY[j] * W[j * input_size + i];
+        }
+    }
     
     //computing the derivative of cost w.r.t the weights and performing 
     //gradient descent on the weights

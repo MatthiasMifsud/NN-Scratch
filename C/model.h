@@ -15,7 +15,7 @@ typedef struct{
 void init_param(Model *model);
 
 void train_model(Model *model, double *X_train, double *y_train, 
-             const int train_size, const int epochs, const double learning_rate);
+                int train_size, const int epochs, const double learning_rate);
 
 void free_model(Model *model);
 

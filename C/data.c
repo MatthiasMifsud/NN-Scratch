@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include "data.h"
 
+Data data;
+int train_size = 0;
+int test_size = 0;
+
 //handeling the MNIST data 
 void init_data(const int train_size, const int test_size, 
             const int input_size, const int output_size){
@@ -18,6 +22,8 @@ void init_data(const int train_size, const int test_size,
 void free_data(){
     free(data.X_test);
     free(data.X_train);
+    free(data.y_test);
+    free(data.y_train);
     free(data.y_test_one_hot);
     free(data.y_train_one_hot);
 }
@@ -85,19 +91,30 @@ void load_data(const int input_size, const int output_size){
 
     int pos = 0;
 
-    const int train_size = file_size(train_data);
-    const int test_size = file_size(test_data);
+    train_size = file_size(train_data);
+    test_size = file_size(test_data);
 
     init_data(train_size, test_size, input_size, output_size);
-
+    
     read_data(test_data, data.y_test, data.X_test, input_size);
     read_data(train_data, data.y_train, data.X_train, input_size);
     one_hot(data.y_test, data.y_test_one_hot, test_size, output_size);
     one_hot(data.y_train, data.y_train_one_hot, train_size, output_size);
 
-    free(data.y_test);
-    free(data.y_train);
-
     fclose(test_data);
     fclose(train_data);
+}
+
+void check_data(const int input_size, const int output_size) {
+    printf("Sample input features (index 1):\n");
+    for (int i = 0; i < input_size; i++) {
+        printf("%f ", data.X_train[1 * input_size + i]);
+    }
+    printf("\n\n");
+
+    printf("Sample one-hot label (index 1):\n");
+    for (int i = 0; i < output_size; i++) {
+        printf("%f ", data.y_train_one_hot[1 * output_size + i]);
+    }
+    printf("\n");
 }
